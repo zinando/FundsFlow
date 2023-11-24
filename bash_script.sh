@@ -5,3 +5,4 @@ pip install Flask
 pip install sqlalchemy
 pip install gunicorn
 pip install flask_sqlalchemy
+gunicorn --version
