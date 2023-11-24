@@ -5,6 +5,7 @@ from myapp.models import *
 
 @app.route('/test', methods=['GET'])
 def test_route():
+    db.create_all()
     """
     Test route to return a dictionary with specific keys.
 
@@ -55,6 +56,7 @@ def get_user_settings():
 
 @app.route('/user', methods=['POST'])
 def save_user_info():
+
     """
     Save user information into the User table.
 
