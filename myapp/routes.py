@@ -16,7 +16,7 @@ def test_route():
     response_data = {
         'status': 1,
         'data': {'key1': 'value1', 'key2': 'value2'},
-        'message': 'Backend accessed successfully',
+        'message': 'FundsFlow Backend accessed successfully',
         'error': None
     }
 
