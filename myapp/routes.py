@@ -5,7 +5,7 @@ from myapp.models import *
 
 @app.route('/test', methods=['GET'])
 def test_route():
-    db.create_all()
+
     """
     Test route to return a dictionary with specific keys.
 
