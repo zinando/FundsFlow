@@ -9,7 +9,7 @@ app = Flask(__name__)
 app.config.from_pyfile('config.py')
 db = SQLAlchemy(app)
 
-cors = CORS(app)
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
 
