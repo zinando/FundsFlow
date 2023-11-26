@@ -81,7 +81,7 @@ class User(db.Model):
             return False, 'User with this username already exists'
 
         new_user = cls(first_name=new_user_info['first_name'], last_name=new_user_info['last_name'],
-                       phone=new_user_info['phone'], email=new_user_info['email'],
+                       phone_number=new_user_info['phone'], email=new_user_info['email'],
                        password=generate_password_hash(new_user_info['password']),
                        business_name=new_user_info['business_name'],
                        business_id=new_user_info['business_id'],
@@ -220,6 +220,7 @@ class RevokedTokens(db.Model):
         tokens.append(token)
         revoked_token.token_list = json.dumps(tokens)
         db.session.commit()
+        return
 
     def get_token_list(self):
         """

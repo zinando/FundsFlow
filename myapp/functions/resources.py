@@ -11,7 +11,7 @@ def generate_business_id(business_name: str) -> str:
         code = myfunc.random_numbers(4)
         userid = "{}_{}".format(business_name.lower()[3:], code)
         if User.query.filter_by(business_id=userid).count() > 0:
-            generate_business_id(business_name)
+            generate_random_code()
         return userid
 
-    return generate_business_id(business_name)
+    return generate_random_code()

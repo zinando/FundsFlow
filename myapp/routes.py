@@ -3,7 +3,7 @@ from myapp import app, db, jwt
 from myapp.models import *
 from flask_jwt_extended import (
     jwt_required, create_access_token, create_refresh_token,
-    get_jwt_identity, current_user
+    get_jwt_identity, current_user, get_jwt
 )
 import json
 from myapp.functions import myfunctions as myfunc
@@ -14,6 +14,19 @@ from myapp.functions import resources as resource
 @jwt.user_identity_loader
 def user_identity_lookup(user):
     return user.id
+
+
+@jwt.needs_fresh_token_loader
+def token_not_fresh_callback(jwt_header, jwt_payload):
+    return (
+        jsonify(
+            {
+                "description": "The token has expired. User need to login to continue browsing this site.",
+                "error": "fresh token is required",
+            }
+        ),
+        401,
+    )
 
 
 @jwt.user_lookup_loader
@@ -30,7 +43,7 @@ def my_expired_token_callback(jwt_header, jwt_payload):
 
 
 @app.route('/refresh', methods=['POST'])
-@jwt_required
+@jwt_required(refresh=True)
 def refresh():
     current_user_id = get_jwt_identity()
     new_access_token = create_access_token(identity=current_user_id)
@@ -64,8 +77,9 @@ def signup() -> str:
     """ receives sign up request and converts the data into python dict then returns a response """
 
     data = request.get_json()
-    password, business_name = data['password'], data['business_name']
-    if password and business_name:
+
+    if 'password' in data and 'business_name' in data:
+        password, business_name = data['password'], data['business_name']
         # validate password strength
         check_password = myfunc.check_password_strength(data['password'])
         if check_password['status'] > 1:
@@ -90,8 +104,9 @@ def signup() -> str:
 def login() -> str:
     """ receives login request and converts the data into python dict then returns a response """
     data = request.get_json()
-    email, password = data['email'], data['password']
-    if email and password:
+
+    if 'email' in data and 'password' in data:
+        email, password = data['email'], data['password']
         user = User.query.filter_by(email=email).first()
         # check if user exists
         if not user:
@@ -127,6 +142,16 @@ def login() -> str:
 
     message = 'user parameters not recognised.'
     return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
+
+
+@app.route("/logout", methods=["DELETE"])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+    worker = RevokedToken(current_user.id)
+    worker.add_revoked_token(jti)
+    return json.dumps({'status': 1, 'data': None, 'message': 'Logged out successfully.', 'error': [None]})
+
 
 
 @app.route('/settings', methods=['POST'])
