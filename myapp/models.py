@@ -31,7 +31,9 @@ class User(db.Model):
     phone_number = db.Column(db.String(15), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     business_name = db.Column(db.String(100), nullable=False)
-    business_address = db.Column(db.String(200), nullable=True)
+    business_email = db.Column(db.String(100), nullable=True)
+    business_phone = db.Column(db.String(15), nullable=False)
+    business_type = db.Column(db.Integer, default=0)
     business_logo_link = db.Column(db.String(200))
     business_id = db.Column(db.String(50), unique=True, nullable=True)
     password = db.Column(db.String(225), nullable=False)
@@ -41,7 +43,7 @@ class User(db.Model):
     passresetcode = db.Column(db.String(255), nullable=True)
     last_login = db.Column(db.DateTime, default=func.now())
     last_password_reset = db.Column(db.String(50), nullable=True)
-    activated = db.Column(db.Integer, default=1)  #  default to 0 if using email validation
+    activated = db.Column(db.Integer, default=1)  # default to 0 if using email validation
     activatecode = db.Column(db.String(255), nullable=True)
     last_activation_code_time = db.Column(db.DateTime(), nullable=True)
     customers = db.relationship('Customer', backref='user', lazy=True)
@@ -80,12 +82,12 @@ class User(db.Model):
         if existing_user:
             return False, 'User with this username already exists'
 
-        new_user = cls(first_name=new_user_info['first_name'], last_name=new_user_info['last_name'],
+        new_user = cls(first_name=new_user_info['first_name'].title(), last_name=new_user_info['last_name'].title(),
                        phone_number=new_user_info['phone'], email=new_user_info['email'],
                        password=generate_password_hash(new_user_info['password']),
                        business_name=new_user_info['business_name'],
-                       business_id=new_user_info['business_id'],
-                       business_address=new_user_info['business_address'])
+                       business_id=new_user_info['business_id'], business_phone=new_user_info['business_phone'],
+                       business_email=new_user_info['business_email'])
         db.session.add(new_user)
         db.session.commit()
         return True, 'User added successfully'

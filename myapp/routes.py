@@ -60,7 +60,7 @@ def test_route():
     Returns:
         JSON response with a dictionary containing status, data, message, and error keys.
     """
-    # db.create_all()
+    db.create_all()
     # Example data for demonstration purposes
     response_data = {
         'status': 1,
