@@ -9,4 +9,4 @@ JWT_SECRET_KEY = os.environ.get('SECRETE_KEY')
 JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)  # Token expires after 1 hour of inactivity
 JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)  # Refresh token validity
 
-CORS_HEADERS = "Content-Type"
+#CORS_HEADERS = "Content-Type"

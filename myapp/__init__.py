@@ -10,6 +10,7 @@ app.config.from_pyfile('config.py')
 db = SQLAlchemy(app)
 
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
+app.config['CORS_HEADERS'] = "Content-Type"
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
 
