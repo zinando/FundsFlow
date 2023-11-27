@@ -6,3 +6,7 @@ pip install sqlalchemy
 pip install gunicorn
 gunicorn --version
 pip install flask_sqlalchemy
+pip install Flask-Migrate
+pip install Flask-JWT-Extended
+pip install Flask-Cors
+pip install python-dotenv
