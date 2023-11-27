@@ -52,6 +52,11 @@ def refresh():
                        'message': message, 'error': [None]}), 200
 
 
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    return json.dumps({'status': 1, 'data': None, 'message': 'Connection successful.', 'error': [None]})
+
+
 @app.route('/test', methods=['GET'])
 def test_route():
     """
@@ -60,7 +65,7 @@ def test_route():
     Returns:
         JSON response with a dictionary containing status, data, message, and error keys.
     """
-    db.create_all()
+    # db.create_all()
     # Example data for demonstration purposes
     response_data = {
         'status': 1,
@@ -151,7 +156,6 @@ def logout():
     worker = RevokedToken(current_user.id)
     worker.add_revoked_token(jti)
     return json.dumps({'status': 1, 'data': None, 'message': 'Logged out successfully.', 'error': [None]})
-
 
 
 @app.route('/settings', methods=['POST'])
