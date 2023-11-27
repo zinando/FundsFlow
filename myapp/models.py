@@ -120,26 +120,8 @@ class Customer(db.Model):
 
 class Transaction(db.Model):
     """
-    Represents a transaction in the database.
-
-    Attributes:
-        id (int): The unique identifier for the transaction.
-        order_id (str): The order ID for the transaction.
-        product_name (str): The name of the product.
-        product_description (str): The description of the product.
-        order_date (DateTime): The date of the order.
-        delivery_address (str): The delivery address for the order.
-        delivery_date (DateTime): The delivery date for the order.
-        total_price (float): The total price for the products.
-        delivery_fee (float): The delivery fee.
-        invoice_link (str): The link to the invoice.
-        discount_applied (float): The discount applied.
-        amount_paid (float): The amount paid by the customer.
-        remaining_balance (float): The remaining balance to be paid.
-        due_date (DateTime): The due date for payment.
-        payment_status (str): Status of payment (e.g., 'paid', 'partially paid', 'unpaid').
+    Represents a transaction instance for a given customer.
     """
-
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
     order_id = db.Column(db.String(50), nullable=True)
@@ -148,12 +130,15 @@ class Transaction(db.Model):
     order_date = db.Column(db.DateTime, nullable=True)
     delivery_address = db.Column(db.String(200), nullable=False)
     delivery_date = db.Column(db.DateTime)
+    rate = db.Column(db.Float, nullable=False)
+    number_of_items = db.Column(db.Integer, nullable=False)
+    discount_applied = db.Column(db.Float)
+    amount_payable = db.Column(db.Float)
     total_price = db.Column(db.Float, nullable=False)
     delivery_fee = db.Column(db.Float, nullable=False)
     invoice_link = db.Column(db.String(200))
     receipt_link = db.Column(db.String(200))
-    discount_applied = db.Column(db.Float)
-    amount_paid = db.Column(db.Float, nullable=True)
+    amount_paid = db.Column(db.Float, default=0)
     remaining_balance = db.Column(db.Float, nullable=True)
     due_date = db.Column(db.DateTime)
     payment_status = db.Column(db.String(20), nullable=False)  # full,part,none

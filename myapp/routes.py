@@ -6,6 +6,7 @@ from flask_jwt_extended import (
     get_jwt_identity, current_user, get_jwt
 )
 import json
+from datetime import datetime
 from myapp.functions import myfunctions as myfunc
 from werkzeug.security import check_password_hash
 from myapp.functions import resources as resource
@@ -65,7 +66,7 @@ def test_route():
     Returns:
         JSON response with a dictionary containing status, data, message, and error keys.
     """
-    db.create_all()
+    # db.create_all()
     # Example data for demonstration purposes
     response_data = {
         'status': 1,
@@ -108,7 +109,7 @@ def signup() -> str:
         if 'user_id' in data:
             user = User.query.filter_by(id=data['user_id']).first()
             if user:
-                User.query.filter_by(id=data['user_id'])\
+                User.query.filter_by(id=data['user_id']) \
                     .update({'first_name': data['first_name'].title(),
                              'last_name': data['last_name'].title(),
                              'phone_number': data['phone']})
@@ -140,15 +141,13 @@ def signup() -> str:
                 User.query.filter_by(id=data['user_id']) \
                     .update({'business_name': data['business_name'],
                              'business_phone': data['business_phone'] if data['business_phone'] else user.phone_number,
-                             'business_email': data['business_email'] if data['business_email'] else user.email})
+                             'business_email': data['business_email'] if data['business_email'] else user.email,
+                             'business_type': data['business_type'], 'business_id': data['business_id']})
                 db.session.commit()
                 status = 1
                 # fetch the saved user-data
                 user = User.query.filter_by(id=data['user_id']).first()
-                worker = {'email': user.email, 'user_id': user.id, 'phone': user.phone_number,
-                          'first_name': user.first_name, 'last_name': user.last_name,
-                          'business_name': user.business_name, 'business_email': user.business_email,
-                          'business_phone': user.business_phone}
+                worker = resource.fetch_user_information(user.id)
                 message = 'User business info updated successfully'
 
             else:
@@ -187,6 +186,7 @@ def login() -> str:
         if not User.query.filter_by(email=email, activated=1).first():
             message = 'User has not confirmed their email'
             return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
+
         # check if user is blocked
         if not User.query.filter_by(email=email, block_stat=0).first():
             message = 'Account is blocked. Pleased contact admin.'
@@ -195,7 +195,7 @@ def login() -> str:
         # log user in
         response = user.encode_auth_token(user)
         if response['status'] == 1:
-            worker = {}
+            worker = resource.fetch_user_information(user.id)
             worker['access_token'] = response['access_token']
             worker['refresh_token'] = response['refresh_token']
             message = 'Login was successful.'
@@ -209,13 +209,123 @@ def login() -> str:
     return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
 
 
-@app.route("/logout", methods=["DELETE"])
+@app.route("/logout", methods=["POST"])
 @jwt_required()
 def logout():
     jti = get_jwt()["jti"]
     worker = RevokedToken(current_user.id)
     worker.add_revoked_token(jti)
     return json.dumps({'status': 1, 'data': None, 'message': 'Logged out successfully.', 'error': [None]})
+
+
+@app.route('/customer', methods=['POST'])
+@jwt_required()
+def customer():
+    data = request.get_json()
+    action = request.args.get('action')
+    if action == 'ADD-CUSTOMER' and 'first_name' in data:
+        new_customer = Customer(
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            email=data['email'],
+            phone_number=data['phone_number'],
+            shipping_address=data['shipping_address'],
+            user_id=current_user.id
+        )
+
+        db.session.add(new_customer)
+        db.session.commit()
+        message = 'Customer added successfully'
+        worker = resource.fetch_customer_info(current_user.id, new_customer.id)
+
+        return json.dumps({'status': 1, 'data': worker, 'message': message, 'error': [None]})
+
+    elif action == 'FETCH-CUSTOMERS':
+        worker = resource.fetch_customer_info(current_user.id)
+        return json.dumps({'status': 1, 'data': worker, 'message': 'Succeeded.', 'error': [None]})
+
+    elif action == 'FETCH-CUSTOMER-TRANSACTIONS' and 'customer_id' in data:
+        worker = resource.fetch_customer_transactions(data['customer_id'])
+
+        return json.dumps({'status': 1, 'data': worker, 'message': 'Succeeded', 'error': [None]})
+
+    message = 'Invalid request action argument or no valid resource parameter in request data'
+    return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
+
+
+@app.route('/transactions', methods=['POST'])
+@jwt_required()
+def transaction():
+    data = request.get_json()
+    action = request.args.get('action')
+
+    if action == 'LOG-TRANSACTION' and 'customer_id' in data:  # logging generated invoice data
+        amount_payable = data['total_price'] + data['delivery_fee'] - data['discount']
+        remaining_balance = amount_payable - data['amount_paid'] if data['amount_paid'] else amount_payable
+        new_transaction = Transaction(
+            customer_id=data['customer_id'],
+            product_name=data['product_name'],
+            product_description=data['product_description'],
+            order_date=datetime.strptime(data['order_date'], '%Y-%m-%d %H:%M:%S') if data['order_date'] else None,
+            delivery_address=data['delivery_address'],
+            delivery_date=datetime.strptime(data['delivery_date'], '%Y-%m-%d %H:%M:%S') if data[
+                'delivery_date'] else None,
+            number_of_items=data['number_of_items'],
+            discount_applied=data['discount'],
+            total_price=data['total_price'],
+            delivery_fee=data['delivery_fee'],
+            amount_payable=amount_payable,
+            invoice_link=data['invoice_link'],
+            receipt_link=data['receipt_link'],
+            amount_paid=data['amount_paid'] if data['amount_paid'] else 0,
+            remaining_balance=remaining_balance,
+            due_date=datetime.strptime(data['due_date'], '%Y-%m-%d %H:%M:%S') if data['due_date'] else None,
+            payment_status='paid' if remaining_balance == 0 else 'pending'
+        )
+
+        db.session.add(new_transaction)
+        db.session.commit()
+
+        worker = resource.fetch_customer_transactions(data['customer_id'])
+
+        return json.dumps({'status': 1, 'data': worker, 'message': 'Transaction Logged successfully.', 'error': [None]})
+
+    elif action == 'UPDATE-TRANSACTION-INFO' and 'transaction_id' in data and 'customer_id' in data:
+        trans_info = Transaction.query.filter_by(id=data['transaction_id']).first()
+        if trans_info:
+            total_paid = trans_info.amount_paid + data['amount_paid']
+            remaining_balance = trans_info.amount_payable - total_paid
+            status = 'paid' if remaining_balance == 0 else 'pending'
+            Transaction.query.filter_by(id=data['transaction_id']) \
+                .update({'amount_paid': total_paid,
+                         'remaining_balance': remaining_balance,
+                         'payment_status': status})
+            db.session.commit()
+
+            worker = resource.fetch_customer_transactions(data['customer_id'])
+
+            return json.dumps(
+                {'status': 1, 'data': worker, 'message': 'Transaction updated successfully.', 'error': [None]})
+
+        message = 'record not found'
+        return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
+
+    elif action == 'DELETE-TRANSACTION' and 'transaction_id' in data and 'customer_id' in data:
+        trans_info = Transaction.query.filter_by(id=data['transaction_id']).first()
+        if trans_info:
+            Transaction.query.filter_by(id=data['transaction_id']).delete()
+            db.session.commit()
+
+            worker = resource.fetch_customer_transactions(data['customer_id'])
+
+            return json.dumps(
+                {'status': 1, 'data': worker, 'message': 'Transaction deleted successfully.', 'error': [None]})
+
+        message = 'Transaction record not found'
+        return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
+
+    message = 'Invalid request action argument or no valid resource parameter in request data'
+    return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
 
 
 @app.route('/settings', methods=['POST'])
