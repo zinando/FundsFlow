@@ -26,13 +26,13 @@ class User(db.Model):
     """
 
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(50), nullable=False)
-    last_name = db.Column(db.String(50), nullable=False)
-    phone_number = db.Column(db.String(15), nullable=False)
+    first_name = db.Column(db.String(50), nullable=True)
+    last_name = db.Column(db.String(50), nullable=True)
+    phone_number = db.Column(db.String(15), nullable=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    business_name = db.Column(db.String(100), nullable=False)
+    business_name = db.Column(db.String(100), nullable=True)
     business_email = db.Column(db.String(100), nullable=True)
-    business_phone = db.Column(db.String(15), nullable=False)
+    business_phone = db.Column(db.String(15), nullable=True)
     business_type = db.Column(db.Integer, default=0)
     business_logo_link = db.Column(db.String(200))
     business_id = db.Column(db.String(50), unique=True, nullable=True)
@@ -82,12 +82,8 @@ class User(db.Model):
         if existing_user:
             return False, 'User with this username already exists'
 
-        new_user = cls(first_name=new_user_info['first_name'].title(), last_name=new_user_info['last_name'].title(),
-                       phone_number=new_user_info['phone'], email=new_user_info['email'],
-                       password=generate_password_hash(new_user_info['password']),
-                       business_name=new_user_info['business_name'],
-                       business_id=new_user_info['business_id'], business_phone=new_user_info['business_phone'],
-                       business_email=new_user_info['business_email'])
+        new_user = cls(email=new_user_info['email'],
+                       password=generate_password_hash(new_user_info['password']))
         db.session.add(new_user)
         db.session.commit()
         return True, 'User added successfully'

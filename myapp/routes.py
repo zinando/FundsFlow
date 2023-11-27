@@ -65,7 +65,7 @@ def test_route():
     Returns:
         JSON response with a dictionary containing status, data, message, and error keys.
     """
-    # db.create_all()
+    db.create_all()
     # Example data for demonstration purposes
     response_data = {
         'status': 1,
@@ -82,26 +82,86 @@ def signup() -> str:
     """ receives sign up request and converts the data into python dict then returns a response """
 
     data = request.get_json()
+    action = request.args.get('action')
+    if action == 'SIGNUP-USER':
+        if 'password' in data and 'email' in data:
+            password = data['password']
+            # validate password strength
+            check_password = myfunc.check_password_strength(password)
+            if check_password['status'] > 1:
+                return json.dumps(check_password)
 
-    if 'password' in data and 'business_name' in data:
-        password, business_name = data['password'], data['business_name']
-        # validate password strength
-        check_password = myfunc.check_password_strength(data['password'])
-        if check_password['status'] > 1:
-            return json.dumps(check_password)
+            # register user
+            users = User()
+            user_is_registered, message = users.add_user(data)
+            if user_is_registered:
+                user = User.query.filter_by(email=data['email']).first()
+                worker = {'email': user.email, 'user_id': user.id}
+                return json.dumps({'status': 1, 'data': worker, 'message': message, 'error': [None]})
+            else:
+                return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
 
-        # generate business id for user
-        data['business_id'] = resource.generate_business_id(business_name)
+        message = 'user parameters not recognised.'
+        return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
 
-        # register user
-        users = User()
-        user_is_registered, message = users.add_user(data)
-        if user_is_registered:
-            return json.dumps({'status': 1, 'data': data, 'message': message, 'error': [None]})
-        else:
-            return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
+    elif action == 'REGISTER-USER-PERSONAL-INFORMATION':
+        if 'user_id' in data:
+            user = User.query.filter_by(id=data['user_id']).first()
+            if user:
+                User.query.filter_by(id=data['user_id'])\
+                    .update({'first_name': data['first_name'].title(),
+                             'last_name': data['last_name'].title(),
+                             'phone_number': data['phone']})
+                db.session.commit()
+                status = 1
+                # fetch the saved user-data
+                user = User.query.filter_by(id=data['user_id']).first()
+                worker = {'email': user.email, 'user_id': user.id, 'phone': user.phone_number,
+                          'first_name': user.first_name, 'last_name': user.last_name}
+                message = 'User personal info updated successfully'
 
-    message = 'user parameters not recognised.'
+            else:
+                status = 2
+                message = 'User not found'
+                worker = None
+
+            return json.dumps({'status': status, 'data': worker, 'message': message, 'error': [message]})
+
+        message = 'No user id provided'
+        return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
+
+    elif action == 'REGISTER-USER-BUSINESS-INFORMATION':
+        if 'user_id' in data and 'business_name' in data:
+            # generate business id for user
+            data['business_id'] = resource.generate_business_id(data['business_name'])
+
+            user = User.query.filter_by(id=data['user_id']).first()
+            if user:
+                User.query.filter_by(id=data['user_id']) \
+                    .update({'business_name': data['business_name'],
+                             'business_phone': data['business_phone'] if data['business_phone'] else user.phone_number,
+                             'business_email': data['business_email'] if data['business_email'] else user.email})
+                db.session.commit()
+                status = 1
+                # fetch the saved user-data
+                user = User.query.filter_by(id=data['user_id']).first()
+                worker = {'email': user.email, 'user_id': user.id, 'phone': user.phone_number,
+                          'first_name': user.first_name, 'last_name': user.last_name,
+                          'business_name': user.business_name, 'business_email': user.business_email,
+                          'business_phone': user.business_phone}
+                message = 'User business info updated successfully'
+
+            else:
+                status = 2
+                message = 'User not found'
+                worker = None
+
+            return json.dumps({'status': status, 'data': worker, 'message': message, 'error': [message]})
+
+        message = 'No user id and or business name provided'
+        return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
+
+    message = 'No action defined'
     return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
 
 
