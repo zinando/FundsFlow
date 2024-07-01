@@ -253,7 +253,7 @@ def customer():
     return json.dumps({'status': 2, 'data': data, 'message': message, 'error': [message]})
 
 
-@app.route('/transactions', methods=['POST'])
+@app.route('/transactions', methods=['POST']) 
 @jwt_required()
 def transaction():
     data = request.get_json()
@@ -399,3 +399,44 @@ def save_user_info():
     db.session.commit()
 
     return jsonify({'message': 'User information saved successfully'}), 201
+
+
+@app.route('/waitlist/<string:query>', methods=['GET'])
+def waitList(query):
+    """
+        Perform action with waitlist data based on search query
+        Args:
+            query (str): search query action to perform
+    """
+    if query == 'fetch':
+        waitlist = WaitList.query.all()
+        waitlist_data = []
+        for user in waitlist:
+            waitlist_data.append({
+                'wid': user.wid,
+                'name': user.name,
+                'email': user.email,
+                'phone': user.phone,
+                'business_type': user.business_type,
+                'reason': user.reason,
+                'registered_at': user.reg_date.strftime('%Y-%m-%d %H:%M:%S') if user.reg_date else ''
+            })
+        return json.dumps({'status': 1, 'data': waitlist_data, 'message': 'Waitlist data fetched successfully',
+                           'error': [None]}), 200
+    
+    elif query == 'add':
+        data = request.get_json()
+        new_waitlist_user = WaitList(
+            name=data['name'],
+            email=data['email'],
+            phone=data['phone'],
+            business_type=data['business_type'],
+            reason=data['reason'],
+            reg_date=datetime.now()
+        )
+        db.session.add(new_waitlist_user)
+        db.session.commit()
+        return json.dumps({'status': 1, 'data': None, 'message': 'Waitlist user added successfully', 'error': [None]}), 201
+
+    return json.dumps({'status': 2, 'data': None, 'message': 'Invalid query', 'error': ['Invalid query']}), 400
+

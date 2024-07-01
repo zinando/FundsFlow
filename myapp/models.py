@@ -6,7 +6,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token
 import json
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.mysql import ENUM
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import generate_password_hash
 
 
 class User(db.Model):
@@ -223,3 +223,23 @@ class RevokedTokens(db.Model):
         """
         token_list = json.loads(self.token_list) if self.token_list else []
         return token in token_list
+
+class WaitList(db.Model):
+    """
+        Class to store waitlist user data
+        attribute:
+        wid (int): waitlist user ID
+        name (str): name of the user
+        email (str): email address of user
+        phone (str): phone number of user
+        business_type (str): type of business
+        reason (str): reason for needing our produc
+        reg_date (datetime): timestamp of when the entry was submitted
+    """
+    wid = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(225), nullable=False)
+    phone = db.Column(db.String(18), nullable=True)
+    email = db.Column(db.String(100), unique=True, nullable=True)
+    business_type = db.Column(db.String(100), nullable=True)
+    reason = db.Column(db.Text, nullable=True)
+    reg_date = db.Column(db.DateTime, default=func.now())

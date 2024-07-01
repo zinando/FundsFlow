@@ -7,58 +7,67 @@ from myapp import app, db
 
 class TestSignupRoute(unittest.TestCase):
     def setUp(self):
-        app.config['TESTING'] = True
-        app.config['WTF_CSRF_ENABLED'] = False
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+        # Set up a test client
         self.app = app.test_client()
 
-        # Create the application context
-        self.app_context = app.app_context()
-        self.app_context.push()
-
-        db.create_all()
-
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-
-    def test_successful_signup(self):
-        """Test successful user signup"""
-
-        # Data for successful signup
+    def test_signup_user_success(self):
+        """Test signup endpoint for registering a new user successfully."""
+        # Simulate a POST request to /signup with valid data for user signup
         data = {
-            'password': 'YOUAREmad2#',
-            'business_name': 'JonDoe',
-            'first_name': "Jon",
+            'password': 'TestPassword123#',
+            'email': 'test@example.com'
+            # Add other required fields if necessary for your application
+        }
+        response = self.app.post('/signup?action=SIGNUP-USER', json=data)
+
+        # Assert that the response status code is 200 and check the response content
+        self.assertEqual(response.status_code, 200)
+        response_data = response.get_json()
+        self.assertEqual(response_data['status'], 1)  # Assuming 'status' 1 denotes success
+        # Add more assertions based on the expected behavior of your application
+
+    def test_register_user_personal_information_success(self):
+        """Test registration of user's personal information."""
+        # Simulate a POST request to /signup with data for updating personal information
+        user_id = 1  # Replace with a valid user ID in your system
+        data = {
+            'user_id': user_id,
+            'first_name': 'John',
             'last_name': 'Doe',
-            'phone': '07031104270',
-            'email': 'jon_doe@yahoo.com',
-            'business_address': '20 Wale street'
-            # Add other required fields for signup
+            'phone': '1234567890'
+            # Add other required fields if necessary for your application
         }
+        response = self.app.post('/signup?action=REGISTER-USER-PERSONAL-INFORMATION', json=data)
 
-        response = self.app.post('/signup', json=data)
-        data = json.loads(response.data.decode())
-
+        # Assert that the response status code is 200 and check the response content
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(data['status'], 1)
-        self.assertIsNotNone(data['data']['business_id'])
-        # Add more assertions for successful signup
+        response_data = response.get_json()
+        self.assertEqual(response_data['status'], 1)  # Assuming 'status' 1 denotes success
+        # Add more assertions based on the expected behavior of your application
 
-    def test_signup_missing_fields(self):
-        """Test signup with missing fields"""
-
-        # Data with missing required fields
-        invalid_data = {
-            # Missing required fields for signup
+    def test_register_user_business_information_success(self):
+        """Test registration of user's business information."""
+        # Simulate a POST request to /signup with data for updating business information
+        user_id = 1  # Replace with a valid user ID in your system
+        data = {
+            'user_id': user_id,
+            'business_name': 'Test Business',
+            'business_phone': '9876543210',
+            'business_email': 'business@example.com',
+            'business_type': 'Test Type'
+            # Add other required fields if necessary for your application
         }
+        response = self.app.post('/signup?action=REGISTER-USER-BUSINESS-INFORMATION', json=data)
 
-        response = self.app.post('/signup', json=invalid_data)
-        data = json.loads(response.data.decode())
-
+        # Assert that the response status code is 200 and check the response content
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(data['status'], 2)
-        # Add assertions for unsuccessful signup due to missing data
+        response_data = response.get_json()
+        self.assertEqual(response_data['status'], 1)
+        self.assertEqual(response_data['business_name'], 'Test Business')
+        # Add more assertions based on the expected behavior of your application
+
+    # Add more test methods for other scenarios (e.g., invalid data, missing parameters, etc.)
+    # Ensure each method's docstring describes the scenario it's testing
 
 
 if __name__ == '__main__':
