@@ -435,7 +435,7 @@ def waitList(query):
             reg_date=datetime.now()
         )
         db.session.add(new_waitlist_user)
-        # db.session.commit()
+        db.session.commit()
         return json.dumps({'status': 1, 'data': None, 'message': 'Waitlist user added successfully', 'error': [None]}), 201
     
     elif query == 'remove' and request.method == 'DELETE':
