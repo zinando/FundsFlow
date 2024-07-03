@@ -401,14 +401,14 @@ def save_user_info():
     return jsonify({'message': 'User information saved successfully'}), 201
 
 
-@app.route('/waitlist/<string:query>', methods=['GET'])
+@app.route('/waitlist/<string:query>', methods=['GET', 'POST'])
 def waitList(query):
     """
         Perform action with waitlist data based on search query
         Args:
             query (str): search query action to perform
     """
-    if query == 'fetch':
+    if query == 'fetch' and request.method == 'GET':
         waitlist = WaitList.query.all()
         waitlist_data = []
         for user in waitlist:
@@ -424,7 +424,7 @@ def waitList(query):
         return json.dumps({'status': 1, 'data': waitlist_data, 'message': 'Waitlist data fetched successfully',
                            'error': [None]}), 200
     
-    elif query == 'add':
+    elif query == 'add' and request.method == 'POST':
         data = request.get_json()
         new_waitlist_user = WaitList(
             name=data['name'],
@@ -435,7 +435,7 @@ def waitList(query):
             reg_date=datetime.now()
         )
         db.session.add(new_waitlist_user)
-        db.session.commit()
+        # db.session.commit()
         return json.dumps({'status': 1, 'data': None, 'message': 'Waitlist user added successfully', 'error': [None]}), 201
 
     return json.dumps({'status': 2, 'data': None, 'message': 'Invalid query', 'error': ['Invalid query']}), 400
