@@ -446,9 +446,9 @@ def waitList(query):
                 db.session.commit()
                 return json.dumps({'status': 1, 'data': None, 'message': 'Waitlist user removed successfully', 'error': [None]}), 200
             except Exception as e:
-                return json.dumps({'status': 2, 'data': None, 'message': 'Error deleteing user record: {e}', 'error': ['Error deleting user record {e}']}), 400
+                return json.dumps({'status': 2, 'data': None, 'message': 'Error deleteing user record: {e}', 'error': ['Error deleting user record {e}']}), 200
             
-        return json.dumps({'status': 2, 'data': None, 'message': 'Invalid query', 'error': ['Invalid query']}), 400
+        return json.dumps({'status': 2, 'data': None, 'message': 'Invalid query', 'error': ['Invalid query']}), 200
 
     return json.dumps({'status': 2, 'data': None, 'message': 'Invalid query', 'error': ['Invalid query']}), 400
 
