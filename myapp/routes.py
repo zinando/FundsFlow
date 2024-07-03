@@ -436,7 +436,21 @@ def waitList(query):
         )
         db.session.add(new_waitlist_user)
         db.session.commit()
-        return json.dumps({'status': 1, 'data': None, 'message': 'Waitlist user added successfully', 'error': [None]}), 201
+
+        # fetch all the data
+        waitlist = WaitList.query.all()
+        waitlist_data = []
+        for user in waitlist:
+            waitlist_data.append({
+                'wid': user.wid,
+                'name': user.name,
+                'email': user.email,
+                'phone': user.phone,
+                'business_type': user.business_type,
+                'reason': user.reason,
+                'registered_at': user.reg_date.strftime('%Y-%m-%d %H:%M:%S') if user.reg_date else ''
+            })
+        return json.dumps({'status': 1, 'data': waitlist_data, 'message': 'Waitlist user added successfully', 'error': [None]}), 201
     
     elif query == 'remove' and request.method == 'DELETE':
         data = request.get_json()
