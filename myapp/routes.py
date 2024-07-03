@@ -401,7 +401,7 @@ def save_user_info():
     return jsonify({'message': 'User information saved successfully'}), 201
 
 
-@app.route('/waitlist/<string:query>', methods=['GET', 'POST'])
+@app.route('/waitlist/<string:query>', methods=['GET', 'POST', 'DELETE'])
 def waitList(query):
     """
         Perform action with waitlist data based on search query
@@ -437,6 +437,18 @@ def waitList(query):
         db.session.add(new_waitlist_user)
         # db.session.commit()
         return json.dumps({'status': 1, 'data': None, 'message': 'Waitlist user added successfully', 'error': [None]}), 201
+    
+    elif query == 'remove' and request.method == 'DELETE':
+        data = request.get_json()
+        if 'wid' in data:
+            try:
+                WaitList.query.filter_by(wid=int(data['wid'])).delete()
+                db.session.commit()
+                return json.dumps({'status': 1, 'data': None, 'message': 'Waitlist user removed successfully', 'error': [None]}), 200
+            except Exception as e:
+                return json.dumps({'status': 2, 'data': None, 'message': 'Error deleteing user record: {e}', 'error': ['Error deleting user record {e}']}), 400
+            
+        return json.dumps({'status': 2, 'data': None, 'message': 'Invalid query', 'error': ['Invalid query']}), 400
 
     return json.dumps({'status': 2, 'data': None, 'message': 'Invalid query', 'error': ['Invalid query']}), 400
 
