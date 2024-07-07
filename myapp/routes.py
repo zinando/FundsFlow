@@ -426,6 +426,14 @@ def waitList(query):
     
     elif query == 'add' and request.method == 'POST':
         data = request.get_json()
+
+        # check if email or phone number already exists
+        if WaitList.query.filter_by(email=data['email']).first():
+            return json.dumps({'status': 2, 'data': None, 'message': 'Email already exists', 'error': ['Email already exists']}), 200
+        if WaitList.query.filter_by(phone=data['phone']).first():
+            return json.dumps({'status': 2, 'data': None, 'message': 'Phone number already exists', 'error': ['Phone number already exists']}), 200
+        
+        # add new user to waitlist
         new_waitlist_user = WaitList(
             name=data['name'],
             email=data['email'],
