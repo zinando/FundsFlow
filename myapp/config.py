@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 
-SQLALCHEMY_DATABASE_URI = 'sqlite:///fundsflow.db'
+SQLALCHEMY_DATABASE_URI = 'sqlite:///myapp/data/fundsflow.db'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SECRETE_KEY = os.environ.get('SECRETE_KEY')
 
