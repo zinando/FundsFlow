@@ -10,3 +10,4 @@ pip install Flask-Migrate
 pip install Flask-JWT-Extended
 pip install Flask-Cors
 pip install python-dotenv
+pip install Flask-SocketIO
