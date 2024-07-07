@@ -443,7 +443,7 @@ def waitList(query):
         for user in waitlist:
             waitlist_data.append({
                 'wid': user.wid,
-                'name': user.name,
+                'name': user.name.title(),
                 'email': user.email,
                 'phone': user.phone,
                 'business_type': user.business_type,
