@@ -429,9 +429,9 @@ def waitList(query):
 
         # check if email or phone number already exists
         if WaitList.query.filter_by(email=data['email']).first():
-            return json.dumps({'status': 2, 'data': None, 'message': 'Email already exists', 'error': ['Email already exists']}), 200
+            return json.dumps({'status': 2, 'data': None, 'message': 'Email already exists', 'error': ['Email already exists']}), 201
         if WaitList.query.filter_by(phone=data['phone']).first():
-            return json.dumps({'status': 2, 'data': None, 'message': 'Phone number already exists', 'error': ['Phone number already exists']}), 200
+            return json.dumps({'status': 2, 'data': None, 'message': 'Phone number already exists', 'error': ['Phone number already exists']}), 201
         
         # add new user to waitlist
         new_waitlist_user = WaitList(
